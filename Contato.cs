@@ -6,10 +6,6 @@ namespace Aula31WhatsappConsole
         public string Nome { get; set; }
         public string Telefone { get; set; }
 
-        public Contato(){
-
-        }
-
         public Contato(string _nome, string _telefone){
 
             this.Nome = _nome;

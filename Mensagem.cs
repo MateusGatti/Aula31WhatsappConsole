@@ -4,11 +4,11 @@ namespace Aula31WhatsappConsole
     {
         
         public string Texto { get; set; }
-        public string Destinatario { get; set; }
+        public Contato Destinatario { get; set; }
 
-        public string Enviar(string _contato){
+        public string Enviar(){
 
-            return "Mensagem enviada.";
+            return $"Para: {Destinatario.Nome} \nMensagem: {Texto}";
 
         }
 

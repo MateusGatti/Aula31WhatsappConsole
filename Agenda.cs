@@ -1,40 +1,58 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Aula31WhatsappConsole
 {
     public class Agenda : IAgenda
     {
-        
+
+        private const string PATH = "Database/agenda.csv";
         List<Contato> contatos = new List<Contato>();
 
-        private const string PATH = "Database/Agenda.csv";
+        /// <summary>
+        /// Método para criar a pasta e o CSV
+        /// </summary>
+        public Agenda()
+        {
+            string pasta = PATH.Split('/')[0];
 
-        public Agenda(){
-
-            if(!(Directory.Exists(PATH))){
-                Directory.CreateDirectory("Database");
+            if(!Directory.Exists(pasta)){
+                Directory.CreateDirectory(pasta);
             }
-            if(!(File.Exists(PATH))){
+
+            if(!File.Exists(PATH))
+            {
                 File.Create(PATH).Close();
             }
         }
+
         /// <summary>
-        /// Adiciona um contato ao CSV
+        /// Adiciona os contatos ao csv
         /// </summary>
-        /// <param name="_adicionarContato">contato a ser adicionado</param>
-        public void Cadastrar(Contato _adicionarContato)
+        /// <param name="cont">contato a ser adicionado</param>
+        public void Cadastrar(Contato cont)
         {
-            var linha = new string[] { PrepararCSV(_adicionarContato) };
-            File.AppendAllLines(PATH, linha);
+            var linha = new string[] { PrepararLinhaCSV (cont) };
+            File.AppendAllLines (PATH, linha);
         }
 
+        /// <summary>
+        /// Prepara a linha para ser colocada no csv
+        /// </summary>
+        /// <param name="c">Contato a ser colocado na linha preparada</param>
+        /// <returns>Linha preparada</returns>
+        public string PrepararLinhaCSV(Contato c){
+
+            return $"nome={c.Nome};telefone={c.Telefone}";
+
+        }
 
         /// <summary>
-        /// Exclui um ou mais contatos do csv
+        /// Exclui 1 ou mais termos selecionados no csv
         /// </summary>
-        /// <param name="_contato">contato a ser removido</param>
-        public void Excluir(string _excluirContato)
+        /// <param name="cont">contato a ser excluido</param>
+        public void Excluir(Contato cont)
         {
             List<string> linhas = new List<string>();
 
@@ -46,61 +64,38 @@ namespace Aula31WhatsappConsole
                     linhas.Add(linha);
                 }
             }
-            linhas.RemoveAll(x => x.Contains(_excluirContato));
-
+            
+            linhas.RemoveAll(x => x.Contains(cont.Nome));
             ReescreverCSV(linhas);
+
         }
 
-
         /// <summary>
-        /// Lista todos os itens do CSV
-        /// </summary>      
-        public void Listar()
+        /// Lista todos os contatos do csv
+        /// </summary>
+        /// <returns>Lista com contatos</returns>
+        public List<Contato> Listar()
         {
-            List<string> linhas = new List<string>();
-            using(StreamReader leitor = new StreamReader(PATH)){
+            string[] linhas = File.ReadAllLines(PATH);
 
-                string linha;
+            foreach(string linha in linhas){
 
-                while((linha = leitor.ReadLine()) != null){
-
-                    System.Console.WriteLine($" Nome: {linha.Split(";")[0].Split("=")[1]} - Telefone: {linha.Split(";")[1].Split("=")[1]}");
-
-                }
+                string[] dado = linha.Split(";");
+                Contato c = new Contato(dado[0], dado[1]);
+                contatos.Add(c);
             }
-    
-        }
 
-
-        /// <summary>
-        /// Prepara o "layout" do CSV
-        /// </summary>
-        /// <param name="adicionarContato">contato a ser adicionado</param>
-        /// <returns>linha pronta para ser adicionada no csv</returns>
-        private string PrepararCSV(Contato adicionarContato){
-
-            return $"nome={adicionarContato.Nome};telefone={adicionarContato.Telefone}";
-
-        }
-
-
-        /// <summary>
-        /// Separa os argumentos do CSV
-        /// </summary>
-        /// <param name="_coluna">separador</param>
-        /// <returns>linha separada</returns>
-        private string Separar(string _coluna){
-
-            return _coluna.Split("=")[0];
-
+            contatos = contatos.OrderBy(y => y.Nome).ToList();
+            
+            return contatos;
         }
 
         /// <summary>
         /// Reescreve o csv
         /// </summary>
-        /// <param name="lines"></param>
+        /// <param name="lines">linhas a serem reescritas</param>
         private void ReescreverCSV(List<string> lines){
-            // Reescrevemos nosso csv do zero
+
             using(StreamWriter output = new StreamWriter(PATH))
             {
                 foreach(string ln in lines)
@@ -109,5 +104,7 @@ namespace Aula31WhatsappConsole
                 }
             }   
         }
+
+
     }
 }
